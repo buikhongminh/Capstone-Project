@@ -46,6 +46,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
+            cd app
             python3 -m venv venv
             . venv/bin/activate
             make install
@@ -67,6 +68,7 @@ jobs:
       - run:
           name: lint app
           command: |
+            cd app
             . venv/bin/activate
             make lint
 
