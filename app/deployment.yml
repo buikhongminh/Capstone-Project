@@ -1,11 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: webserver
+  name: viet-deployment
+  namespace: viet-udacity
   labels:
     app: webserver
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: webserver
@@ -15,8 +16,24 @@ spec:
         app: webserver
     spec:
       containers:
-      - name: webserver
-        image: //todo
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
+        - name: webserver
+          image: 399684875495.dkr.ecr.us-east-1.amazonaws.com/vietcapstone:latest
+          ports:
+            - containerPort: 80
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loadbalancer
+  namespace: viet-capstone
+spec:
+  selector:
+    app: webserver
+  type: LoadBalancer
+  ports:
+    - port: 80

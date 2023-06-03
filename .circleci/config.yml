@@ -1,18 +1,46 @@
 version: 2
 
 jobs:
+  configure-cluster:
+    docker:
+      - image: 'python:3.7.3-stretch'
+    steps:
+      - checkout
+      - run:
+          name: setup enviroment 
+          command: |
+            # Install kubectl
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin
+            kubectl version --short --client
+
+            # Install AWS CLI
+            curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+            unzip awscliv2.zip
+            sudo ./aws/install
+            aws --version
+
+            # Install eksctl
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            mv /tmp/eksctl /usr/local/bin
+            eksctl version
+      - run:
+          name: Create EKS cluster
+          command: |
+            # Create the EKS cluster
+            eksctl create cluster -f eks-cluster/cluster.yaml
+            kubectl get nodes
+            aws s3 cp ~/.kube/config s3://udacity/kubeconfig
   build:
     docker:
       - image: 'python:3.7.3-stretch'
-    working_directory: ~/repo
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - 'v1-dependencies-{{ checksum "requirements.txt" }}'
-            - v1-dependencies-
+          keys: [ app-build ]
       - run:
-          name: install dependencies
+          name: build app
           command: |
             python3 -m venv venv
             . venv/bin/activate
@@ -23,9 +51,119 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: 'v1-dependencies-{{ checksum "requirements.txt" }}'
+          key: app-build
+
+  lint:        
+    docker:
+      - image: 'python:3.7.3-stretch'
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [ app-lint ]
       - run:
-          name: run lint
+          name: lint app
           command: |
             . venv/bin/activate
             make lint
+
+  build_docker:
+    docker:
+      - image: 'python:3.7.3-stretch'
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.7
+      - run:
+          name: Install AWS CLI
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            
+            sudo apt-get update
+            sudo apt-get install -y curl
+            
+            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - run:
+          name: Build, tag, and push the image to Amazon ECR
+          command: |
+            cd app
+            # build a docker image
+            echo "Build a docker container"
+            docker build -t vietcapstone:latest .
+          
+            # tag the docker image
+            REPOSITORY_URI="399684875495.dkr.ecr.us-east-1.amazonaws.com/vietcapstone:latest"
+            docker tag vietcapstone:latest $REPOSITORY_URI
+
+            echo "Pushing image to ECR"
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 399684875495.dkr.ecr.us-east-1.amazonaws.com
+            docker push $REPOSITORY_URI
+  
+  deploy:
+    docker:
+      - image: 'python:3.7.3-stretch'
+    steps:
+      - checkout
+      - run:
+          name: Install environment
+          command: |
+            # Install AWS CLI
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+
+            # Install kubectl
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin
+            
+            sudo apt-get update
+            sudo apt-get install -y curl
+
+      - run:
+          name: Get config
+          command: |
+            aws s3 cp s3://udacity/kubeconfig ~/.kube/config
+            export KUBECONFIG=$KUBECONFIG:~/.kube/config
+            kubectl get nodes
+      - run:
+          name: Deploy Docker Image to EKS Cluster
+          command: |
+            # create namespace
+            kubectl create namespace viet-capstone
+
+            # kubectl config
+            kubectl config set-context --current --namespace=viet-capstone
+            kubectl apply -f app/deployment.yaml -n viet-capstone
+
+            # get Load Balancer url
+            LOADBALAMCER_URL=$(kubectl get services -n viet-capstone loadbalancer -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            echo "$LOADBALAMCER_URL" > app/url.txt
+            cat app/url.txt
+
+            # copy to s3
+            aws s3 cp app/url.txt s3://udacity/url.txt
+
+            # deploy 
+            kubectl get deployments -n viet-capstone
+
+
+      - run:
+          name: smock test
+          command: |
+            exit 0
+
+workflows:
+  default:
+    jobs:
+      - create-cluster
+      - build
+      - lint:
+          requires: [build]
+      - build_docker:
+          requires: [lint, create-cluster]
+      - deploy:
+          requires: [build_docker]
