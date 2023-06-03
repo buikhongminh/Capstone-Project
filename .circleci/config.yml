@@ -166,6 +166,6 @@ workflows:
       - lint:
           requires: [build]
       - build_docker:
-          requires: [lint, create-cluster]
+          requires: [lint, configure-cluster]
       - deploy:
           requires: [build_docker]
