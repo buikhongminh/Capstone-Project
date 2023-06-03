@@ -159,7 +159,7 @@ jobs:
 workflows:
   default:
     jobs:
-      - create-cluster
+      - configure-cluster
       - build
       - lint:
           requires: [build]
