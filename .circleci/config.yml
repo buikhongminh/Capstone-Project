@@ -5,7 +5,7 @@ orbs:
 jobs:
   configure-cluster:
     docker:
-      - image: 'python:3.7.3-stretch'
+      - image: 'circleci/python:3.7'
     steps:
       - checkout
       - run:
@@ -36,7 +36,7 @@ jobs:
             aws s3 cp ~/.kube/config s3://vietudacity/kubeconfig
   build:
     docker:
-      - image: 'python:3.7.3-stretch'
+      - image: 'circleci/python:3.7'
     steps:
       - checkout
       - restore_cache:
@@ -57,7 +57,7 @@ jobs:
 
   lint:        
     docker:
-      - image: 'python:3.7.3-stretch'
+      - image: 'circleci/python:3.7'
     steps:
       - checkout
       - restore_cache:
@@ -70,7 +70,7 @@ jobs:
 
   build_docker:
     docker:
-      - image: 'python:3.7.3-stretch'
+      - image: 'circleci/python:3.7'
     steps:
       - checkout
       - setup_remote_docker:
@@ -106,7 +106,7 @@ jobs:
   
   deploy:
     docker:
-      - image: 'python:3.7.3-stretch'
+      - image: 'circleci/python:3.7'
     steps:
       - checkout
       - run:
