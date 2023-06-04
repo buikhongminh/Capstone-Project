@@ -30,22 +30,10 @@ jobs:
       - run:
           name: Create EKS cluster
           command: |
-            # # Create the EKS cluster
-            # eksctl create cluster -f eks-cluster/cluster.yaml
-            # kubectl get nodes
-            # aws s3 cp ~/.kube/config s3://vietudacity/kubeconfig
-            #  # Set the name of the cluster
-            CLUSTER_NAME="udacity-cluster"
-            
-            # Check if the cluster already exists
-            if aws eks describe-cluster --name "$CLUSTER_NAME" >/dev/null 2>&1; then
-              echo "The EKS cluster '$CLUSTER_NAME' already exists."
-            else
-              # Create the EKS cluster
-              eksctl create cluster -f eks-cluster/cluster.yaml
-              kubectl get nodes
-              aws s3 cp ~/.kube/config s3://vietudacity/kubeconfig            
-            fi
+            # Create the EKS cluster
+            eksctl create cluster -f eks-cluster/cluster.yaml
+            kubectl get nodes
+            aws s3 cp ~/.kube/config s3://vietudacity/kubeconfig
   test-build:
     docker:
       - image: 'circleci/python:3.7'
@@ -137,7 +125,7 @@ jobs:
           name: Deploy Docker Image to EKS Cluster
           command: |
             # create namespace
-            # kubectl create namespace viet-capstone
+            kubectl create namespace viet-capstone
 
             # kubectl config
             kubectl config set-context --current --namespace=viet-capstone
@@ -151,13 +139,9 @@ jobs:
             # copy the output to s3
             aws s3 cp url.txt s3://vietudacity/url.txt
 
-            # deploy 
+            # deploy, update and check the deployment app
             kubectl get deployments -n viet-capstone
-
-            # update-run the latest Build
             kubectl -n viet-capstone set image deployment/viet-deployment webserver=399684875495.dkr.ecr.us-east-1.amazonaws.com/vietcapstone:latest
-            
-            # monitoring deployment ist successful
             kubectl -n viet-capstone rollout status deployment viet-deployment
 
       - run:
