@@ -163,7 +163,7 @@ jobs:
       - run:
           name: smock test
           command: |
-            LB_URL=$(cat app/url.txt)
+            LB_URL=$(cat url.txt)
             echo "THIS IS : $LB_URL"
             exit 0
 
