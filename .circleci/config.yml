@@ -53,12 +53,16 @@ jobs:
             # Install hadolint
             sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
             sudo chmod +x /bin/hadolint
-            make lint
+            # make lint
       - save_cache:
           paths:
             - ./venv
           key: 'v1-dependencies-{{ checksum "app/requirements.txt" }}'
-
+      - run:
+          name: run lint
+          command: |
+            . venv/bin/activate
+            make lint
   # lint:        
   #   docker:
   #     - image: 'circleci/python:3.7'
