@@ -154,7 +154,7 @@ jobs:
             cat url.txt
 
             # copy to s3
-            aws s3 cp url.txt s3://udacity/url.txt
+            aws s3 cp url.txt s3://vietudacity/url.txt
 
             # deploy 
             kubectl get deployments -n viet-capstone
