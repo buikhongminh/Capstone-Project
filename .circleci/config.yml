@@ -137,7 +137,7 @@ jobs:
           name: Deploy Docker Image to EKS Cluster
           command: |
             # create namespace
-            kubectl create namespace viet-capstone
+            # kubectl create namespace viet-capstone
 
             # kubectl config
             kubectl config set-context --current --namespace=viet-capstone
@@ -146,10 +146,11 @@ jobs:
             # get Load Balancer url
             LOADBALAMCER_URL=$(kubectl get services -n viet-capstone loadbalancer -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             echo "$LOADBALAMCER_URL" > url.txt
+            echo "$LOADBALAMCER_URL"
             cat url.txt
 
             # copy the output to s3
-            aws s3 cp url.txt s3://vietudacity/url.txt
+            aws s3 url.txt s3://vietudacity/url.txt
 
             # deploy 
             kubectl get deployments -n viet-capstone
