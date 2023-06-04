@@ -149,18 +149,19 @@ jobs:
             echo "$LOADBALAMCER_URL" > url.txt
             cat url.txt
 
-            # copy to s3
+            # copy the output to s3
             aws s3 cp url.txt s3://vietudacity/url.txt
 
             # deploy 
             kubectl get deployments -n viet-capstone
 
-            # redeploy if docker-image was changed
+            # update-run the latest Build
             kubectl -n viet-capstone set image deployment/viet-deployment webserver=399684875495.dkr.ecr.us-east-1.amazonaws.com/vietcapstone:latest
             
             kubectl -n viet-capstone get nodes
             kubectl -n viet-capstone get pods
-            
+
+            # monitoring deployment ist successful
             kubectl -n viet-capstone rollout status deployment viet-deployment
 
       - run:
