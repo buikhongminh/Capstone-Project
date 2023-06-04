@@ -41,19 +41,21 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - 'v1-dependencies-{{ checksum "app/requirements.txt" }}'
+            - 'v1-dependencies-{{ checksum "requirements.txt" }}'
             - v1-dependencies-
       - run:
           name: install dependencies
           command: |
-            cd app
             python3 -m venv venv
             . venv/bin/activate
             make install
+             # Install hadolint
+            sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
+            sudo chmod +x /bin/hadolint
       - save_cache:
           paths:
             - ./venv
-          key: 'v1-dependencies-{{ checksum "app/requirements.txt" }}'
+          key: 'v1-dependencies-{{ checksum "requirements.txt" }}'
 
   lint:        
     docker:
@@ -65,12 +67,7 @@ jobs:
       - run:
           name: lint app
           command: |
-            cd app
-            python3 -m venv venv
             . venv/bin/activate
-            # Install hadolint
-            sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
-            sudo chmod +x /bin/hadolint
             make lint
 
   build_docker:
@@ -96,7 +93,6 @@ jobs:
       - run:
           name: Build, tag, and push the image to Amazon ECR
           command: |
-            cd app
             # build a docker image
             echo "Build a docker container"
             docker build -t vietcapstone:latest .
@@ -144,15 +140,15 @@ jobs:
 
             # kubectl config
             kubectl config set-context --current --namespace=viet-capstone
-            kubectl apply -f app/deployment.yaml -n viet-capstone
+            kubectl apply -f deployment.yaml -n viet-capstone
 
             # get Load Balancer url
             LOADBALAMCER_URL=$(kubectl get services -n viet-capstone loadbalancer -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-            echo "$LOADBALAMCER_URL" > app/url.txt
-            cat app/url.txt
+            echo "$LOADBALAMCER_URL" > url.txt
+            cat url.txt
 
             # copy to s3
-            aws s3 cp app/url.txt s3://udacity/url.txt
+            aws s3 cp url.txt s3://udacity/url.txt
 
             # deploy 
             kubectl get deployments -n viet-capstone
