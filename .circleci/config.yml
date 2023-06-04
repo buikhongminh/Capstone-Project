@@ -165,6 +165,7 @@ jobs:
           command: |
             LOADBALAMCER_URL=$(cat url.txt)
             RESPONSE = $(curl -sL -w "%{http_code}\\n" "$LOADBALAMCER_URL" -o /dev/null)
+            echo "$RESPONSE"
             if [[ $RESPONSE == 200 ]]; then 
               echo "Load balancer is available. HTTP response code: $RESPONSE"
               exit 0
