@@ -137,7 +137,7 @@ jobs:
           name: Deploy Docker Image to EKS Cluster
           command: |
             # create namespace
-            # kubectl create namespace viet-capstone
+            kubectl create namespace viet-capstone
 
             # kubectl config
             kubectl config set-context --current --namespace=viet-capstone
