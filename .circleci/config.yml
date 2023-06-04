@@ -46,7 +46,7 @@ jobs:
               kubectl get nodes
               aws s3 cp ~/.kube/config s3://vietudacity/kubeconfig            
             fi
-  build:
+  test-build:
     docker:
       - image: 'circleci/python:3.7'
     steps:
@@ -133,7 +133,6 @@ jobs:
           command: |
             aws s3 cp s3://vietudacity/kubeconfig ~/.kube/config
             export KUBECONFIG=$KUBECONFIG:~/.kube/config
-            kubectl get nodes
       - run:
           name: Deploy Docker Image to EKS Cluster
           command: |
@@ -158,9 +157,7 @@ jobs:
             # update-run the latest Build
             kubectl -n viet-capstone set image deployment/viet-deployment webserver=399684875495.dkr.ecr.us-east-1.amazonaws.com/vietcapstone:latest
             
-            kubectl -n viet-capstone get nodes
-            kubectl -n viet-capstone get pods
-
+            kubectl get service
             # monitoring deployment ist successful
             kubectl -n viet-capstone rollout status deployment viet-deployment
 
@@ -173,10 +170,8 @@ workflows:
   default:
     jobs:
       - configure-cluster
-      - build
-      # - lint:
-      #     requires: [build]
+      - test-build
       - build_docker:
-          requires: [configure-cluster]
+          requires: [test-build, configure-cluster]
       - deploy:
           requires: [build_docker]
