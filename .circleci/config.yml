@@ -58,19 +58,24 @@ jobs:
             - ./venv
           key: 'v1-dependencies-{{ checksum "app/requirements.txt" }}'
 
-  lint:        
-    docker:
-      - image: 'circleci/python:3.7'
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [ app-lint ]
       - run:
           name: lint app
           command: |
-            cd app
             . venv/bin/activate
             make lint
+  # lint:        
+  #   docker:
+  #     - image: 'circleci/python:3.7'
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys: [ app-lint ]
+  #     - run:
+  #         name: lint app
+  #         command: |
+  #           cd app
+  #           . venv/bin/activate
+  #           make lint
 
   build_docker:
     docker:
@@ -167,8 +172,8 @@ workflows:
     jobs:
       - configure-cluster
       - build
-      - lint:
-          requires: [build]
+      # - lint:
+      #     requires: [build]
       - build_docker:
           requires: [lint, configure-cluster]
       - deploy:
