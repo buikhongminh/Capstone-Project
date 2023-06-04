@@ -125,7 +125,7 @@ jobs:
             sudo ./aws/install
 
             # Install kubectl
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/kubectl
             chmod +x ./kubectl
             sudo mv ./kubectl /usr/local/bin
             
@@ -158,7 +158,7 @@ jobs:
 
             # deploy 
             kubectl get deployments -n viet-capstone
-            
+
       - run:
           name: smock test
           command: |
