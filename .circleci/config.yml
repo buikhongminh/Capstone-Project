@@ -159,6 +159,14 @@ jobs:
             # deploy 
             kubectl get deployments -n viet-capstone
 
+            # redeploy if docker-image was changed
+            kubectl -n viet-capstone set image deployment/viet-deployment viet=609874051346.dkr.ecr.us-east-1.amazonaws.com/vietcapstone:latest
+            
+            kubectl -n viet-capstone get nodes
+            kubectl -n viet-capstone get pods
+            
+            kubectl -n viet-capstone rollout status deployment viet-deployment
+
       - run:
           name: smock test
           command: |
