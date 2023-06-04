@@ -164,13 +164,13 @@ jobs:
           name: smock test
           command: |
             LOADBALAMCER_URL=$(cat url.txt)
-            RESPONSE = $(curl -sL -w "%{http_code}\\n" "$LOADBALAMCER_URL" -o /dev/null)
-            echo "$RESPONSE"
-            if [[ $RESPONSE == 200 ]]; then 
-              echo "Load balancer is available. HTTP response code: $RESPONSE"
+            response = $(curl -sL -w "%{http_code}\\n" "$LOADBALAMCER_URL" -o /dev/null)
+            echo "$(curl -sL -w "%{http_code}\\n" "$LOADBALAMCER_URL" -o /dev/null)"
+            if [[ $response == 200 ]]; then 
+              echo "Load balancer is available. HTTP response code: $response"
               exit 0
             else
-              echo "Load balancer is not available. HTTP response code: $RESPONSE"
+              echo "Load balancer is not available. HTTP response code: $response"
               exit 1
             fi
 
