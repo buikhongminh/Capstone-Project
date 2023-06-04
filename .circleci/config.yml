@@ -163,9 +163,15 @@ jobs:
       - run:
           name: smock test
           command: |
-            LB_URL=$(cat url.txt)
-            echo "THIS IS : $LB_URL"
-            exit 0
+            LOADBALAMCER_URL=$(cat url.txt)
+            RESPONSE = $(curl -sL -w "%{http_code}\\n" "$LOADBALAMCER_URL" -o /dev/null)
+            if [[ $response == 200 ]]; then 
+              echo "Load balancer is available. HTTP response code: $response"
+              exit 0
+            else
+              echo "Load balancer is not available. HTTP response code: $response"
+              exit 1
+            fi
 
 workflows:
   default:
