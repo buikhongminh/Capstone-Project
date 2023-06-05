@@ -30,10 +30,20 @@ jobs:
       - run:
           name: Create EKS cluster
           command: |
-            # Create the EKS cluster
-            eksctl create cluster -f eks-cluster/cluster.yaml
-            kubectl get nodes
-            aws s3 cp ~/.kube/config s3://vietudacity/kubeconfig
+            AWS_REGION=${AWS_DEFAULT_REGION}
+            CLUSTER_NAME="udacity-cluster"
+            # get cluster name
+            CLUSTER_EXISTS=$(aws eks describe-cluster --name $CLUSTER_NAME --region $AWS_REGION 2>&1)
+            # Check if the cluster exists
+            if [[ $CLUSTER_EXISTS == *"ResourceNotFoundException"* ]]; then
+              echo "EKS cluster '$CLUSTER_NAME' does not exist."
+               # Create the EKS cluster
+              eksctl create cluster -f eks-cluster/cluster.yaml
+              kubectl get nodes
+              aws s3 cp ~/.kube/config s3://vietudacity/kubeconfig
+            else
+              echo "EKS cluster '$CLUSTER_NAME' exists."  
+            fi
   test-build:
     docker:
       - image: 'circleci/python:3.7'
@@ -124,15 +134,26 @@ jobs:
       - run:
           name: Deploy Docker Image to EKS Cluster
           command: |
-            # create namespace
-            kubectl create namespace viet-capstone
+            NAMESPACE="viet-capstone"
 
+            # get the namespace exists
+            NAMESPACE_EXISTS=$(kubectl get namespace $NAMESPACE 2>&1)
+
+            # Check if the namespace exists
+            if [[ $output == *"NotFound"* ]]; then
+              echo "Namespace '$NAMESPACE' does not exist."
+              # create namespace
+              kubectl create namespace $NAMESPACE
+            else
+              echo "Namespace '$NAMESPACE' exists."
+            fi
+            
             # kubectl config
-            kubectl config set-context --current --namespace=viet-capstone
-            kubectl apply -f deployment.yml -n viet-capstone
+            kubectl config set-context --current --namespace=$NAMESPACE
+            kubectl apply -f deployment.yml -n $NAMESPACE
 
             # get Load Balancer url
-            LOADBALAMCER_URL=$(kubectl get services -n viet-capstone loadbalancer -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            LOADBALAMCER_URL=$(kubectl get services -n $NAMESPACE loadbalancer -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             echo "$LOADBALAMCER_URL" > url.txt
             cat url.txt
 
@@ -140,9 +161,10 @@ jobs:
             aws s3 cp url.txt s3://vietudacity/url.txt
 
             # deploy, update and check the deployment app
-            kubectl get deployments -n viet-capstone
-            kubectl -n viet-capstone set image deployment/viet-deployment webserver=399684875495.dkr.ecr.us-east-1.amazonaws.com/vietcapstone:latest
-            kubectl -n viet-capstone rollout status deployment viet-deployment
+            kubectl get deployments -n $NAMESPACE
+            kubectl -n $NAMESPACE set image deployment/viet-deployment webserver=399684875495.dkr.ecr.us-east-1.amazonaws.com/vietcapstone:latest
+            kubectl -n $NAMESPACE get pods
+            kubectl -n $NAMESPACE rollout status deployment viet-deployment
 
       - run:
           name: smock test
