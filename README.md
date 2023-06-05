@@ -1,4 +1,4 @@
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/ankur1230/Udacity-DevOps-Capstone/tree/main.svg?style=svg)](https://app.circleci.com/pipelines/github/lampqt1997/lampqt_Devops_Capstone)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/ankur1230/Udacity-DevOps-Capstone/tree/main.svg?style=svg)](https://app.circleci.com/pipelines/github/buikhongminh/Capstone-Project)
 
 # Capstone Project
 
@@ -30,3 +30,9 @@ The project repository has the following structure:
 ├── Makefile                
 ├── requirements.txt
 └── README.md
+
+## Access the Application
+
+Public LB DNS: http://af0697559b2b34ed2a8306cfb13ac6dc-783596888.us-east-1.elb.amazonaws.com/
+
+![Access LB DNS](./submission/screenshots/Web_after_deployment.png)
