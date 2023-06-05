@@ -132,7 +132,7 @@ jobs:
             aws s3 cp s3://vietudacity/kubeconfig ~/.kube/config
             export KUBECONFIG=$KUBECONFIG:~/.kube/config
       - run:
-          name: Deploy Docker Image to EKS Cluster
+          name: Deploy Application
           command: |
             NAMESPACE="viet-capstone"
 
