@@ -167,7 +167,7 @@ jobs:
             kubectl -n $NAMESPACE rollout status deployment viet-deployment
 
       - run:
-          name: smock test
+          name: Smock Test
           command: |
             LOADBALAMCER_URL=$(cat url.txt)
             response_code=$(curl --write-out '%{response_code}' --head --silent --output /dev/null $LOADBALAMCER_URL)
