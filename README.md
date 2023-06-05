@@ -1,6 +1,9 @@
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/ankur1230/Udacity-DevOps-Capstone/tree/main.svg?style=svg)](https://app.circleci.com/pipelines/github/buikhongminh/Capstone-Project)
 
+
 # Capstone Project
+
+This is my repository: https://github.com/buikhongminh/Capstone-Project
 
 This is the capstone project for the Udacity Cloud DevOps Engineer Nanodegree program. The project involves building, linting, and deploying an application using various tools and technologies.
 In this project I apply the skills and knowledge which were developed throughout the Cloud DevOps Nanodegree program. These include:
